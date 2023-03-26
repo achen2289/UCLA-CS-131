@@ -1,0 +1,24 @@
+For Russell's Paradox question, I believe it isn't codeable in OCaml because lists
+need to be homogeneous, so all types in a list must be alike. To have a set be a member 
+of itself, that means the types of the list will not be homogenous, so OCaml will have 
+a problem representing these.
+
+In the filter_blind_alleys problem, I started off by working through sample 
+test cases to understand expected behavior and what a blind-alley is. From there,
+I figured that I needed to recurse through the grammar rules and separate those 
+that would lead to a terminal string from those that did not. So I started with writing 
+pseudocode for the methods that would tell me if a symbol and if a rhs of a rule is terminable. 
+Then, I worked on the filter_helper method to filter out which rules in the original grammar were 
+terminable and which were not, based on the symbols I would eventually determine are terminable. Lastly,
+I decided to use the computed_fixed_point function which would keep re-iterating through 
+the rules until all terminal symbols were computed. If only one iteration is performed, only 
+immediate terminal symbols would be discovered, rather than rules that eventually lead to
+terminal symbols. Then, the function I used as input to computed_fixed_point was
+one that took in a 2-tuple of rules and current terminal symbols and outputted a 2-tuple of those rules 
+and further discovered terminal symbols. Upon the discovered terminal symbols not changing, that is when
+the symbols are finalized, and they can be used to filter rules.
+
+One point of confusion that made the problem solving process longer was that only unreachable rules should
+be blind-alley rules (ta slides mentioned using the former). Thus, I initially thought about the 
+problem as some sort of DFS / BFS to discover which rules would not be reached from the starting 
+expression. However, when realizing the difference, I re-brainstormed my method to result in the aforementioned.

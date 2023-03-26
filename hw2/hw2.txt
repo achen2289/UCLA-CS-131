@@ -1,0 +1,53 @@
+I did not choose to write make_parse completely in terms of make_matcher, as
+there were some modifications I needed to make to make_matcher. However, 
+there were some similarities that made keeping the general make_matcher
+structure logical.
+
+Because make_matcher checks for a valid prefix in the grammar rules, then uses
+an acceptor to match the suffix, I knew make_matcher could be utilized. 
+
+The first change would be to update the acceptor. The parser would need to use
+an acceptor that accepts any empty suffix. This ensures that all matched
+prefixes are equal to the entire fragment, so not just the prefix is a valid
+statement, but the entire fragment is.
+
+Next, upon breaking down a rule and matching a terminal symbol to a part of
+the fragment, we essentially know at this point that the fragment portion
+forms a new leaf on the temporary tree. However, this information isn't stored
+in the original methods used by make_matcher, which is one of the changes I 
+made.
+
+Another change I made was storing the start_symbol in addition to the
+tree / path. This is necessary because when accepting a fragment, we need
+to return the parse tree / top level node corrersponding to the fragment.
+We have access to the path taken to form that fragment, but we also need
+the root node symbol so that we can form a parse tree with a node's value and
+the children nodes.
+
+One weakness of make_parser is that it is not guaranteed to be optimal. 
+It will try the rules in the order they appear, so if a rule that is 
+defined later is the one that forms the first node in the parse tree,
+it cannot be reached until after recursing attempting to match the 
+previous rules. For example, if we have a rule that goes 
+
+Expr -> [[N Expr2; N Expr3; N Expr4];
+         [N Expr2; N Expr5; N Expr6];
+         [T "Hi"]]
+
+and the fragment is ["Hi"], it may take a long time for make_parser to 
+finish since the other expressions may have many encompassed rules. This 
+is essentially a shortcoming associated with DFS.
+
+A further problem stemming from this is there may be an infinite loop 
+in the execution. If we have the rule
+
+Expr -> [[N Expr; T "End"];
+         [T "The"]]
+
+then in attempting to match a fragment such as ["The", "End"], because the 
+parser checks rules from left to right, Expr will endlessly be expanded 
+and the fragment will never be matched despite following the grammar rules.
+
+To resolve such a problem, we would need to define rules that are expanded
+from right to left. However, the opposite problem occurs, so this alone is not
+a thorough solution.
